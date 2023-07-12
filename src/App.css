@@ -75,6 +75,12 @@ img:hover {
   filter: grayscale(100%);
 }
 
+.signature {
+  font-family: 'Orbitron', sans-serif;
+  color: cyan;
+  font-size: 10px;
+}
+
 .price {
   font-family: 'Orbitron', sans-serif;
   color: white;
@@ -95,6 +101,10 @@ img:hover {
 
 .checkout-lil-nft{
   width: 50px;
+}
+
+.checkout-big-nft{
+  width: 150px;
 }
 
 .checkout-lil-nft:hover {

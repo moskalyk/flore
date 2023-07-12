@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+/go-app/.env
+/node-signer/bundled-signatures/.env
+
 # testing
 /coverage
 
