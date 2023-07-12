@@ -15,10 +15,15 @@ import img9 from './imgs/9.png'
 function App() {
   const [imgs, setImags] = React.useState([img0, img1, img2, img3, img4, img5, img6, img7, img8, img8, img9 ] )
   const [temperature, setTemperature] = React.useState(0)
-  const [prices, setPrices] = React.useState([111, 222, 333, 444, 555, 666, 777, 888, 999, 2222, 1111] )
-
+  const [prices, setPrices] = React.useState([11, 22, 33, 44, 55, 66, 77, 88, 99, 222, 111] )
+  const [selectedNFT, setSelectedNFT] = React.useState('')
+  const getPrices = async () => {
+    setTimeout(() => {
+      setTemperature(21.2)
+    }, 1000)
+  }
   React.useEffect(() => {
-    setTemperature(21.2)
+    getPrices()
   }, [])
   return (
     <div className="App">
@@ -33,7 +38,8 @@ function App() {
       <div className='container'>
         {imgs.map((img, i) => {
           if(i==9) return <img className='black-square' />
-          else return <div className="flower"><img src={img} /><p className='price'>{prices[i]} $TEN</p></div>
+          else return <div className="flower" onClick={() => setSelectedNFT(img)}>
+            <img src={img} /><p className='price'>{Math.floor(prices[i]*temperature)} $TEN</p></div>
         })}
       </div>
         <br/>
@@ -41,6 +47,10 @@ function App() {
         <br/>
         <br/>
         <br/>
+        <div className='checkout-button'>
+          <img src={selectedNFT} className='checkout-lil-nft'/>
+          <span style={{color: 'white', padding: '20px', margin: 'auto', fontFamily: 'Orbitron'}}>{` > checkout`}</span>
+        </div>
         <br/>
     </div>
   );
