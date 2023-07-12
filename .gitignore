@@ -6,7 +6,9 @@
 .pnp.js
 
 /go-app/.env
+/go-app/GeoLite2-City_20230707/
 /node-signer/bundled-signatures/.env
+
 
 # testing
 /coverage
