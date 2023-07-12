@@ -8,6 +8,8 @@
 /go-app/.env
 /go-app/GeoLite2-City_20230707/
 /node-signer/bundled-signatures/.env
+/node-signer/bundled-signatures/node_modules
+
 
 
 # testing
