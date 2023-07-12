@@ -110,3 +110,24 @@ img:hover {
 .checkout-lil-nft:hover {
   cursor: pointer;
 }
+
+.css-11ze7cv {
+  margin: auto;
+  color: white;
+}
+
+.MuiStepLabel-label.Mui-active.css-1hv8oq8-MuiStepLabel-label {
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+
+}
+
+.MuiStepLabel-label.Mui-completed.css-1hv8oq8-MuiStepLabel-label {
+  color: white;
+}
+
+.MuiStepLabel-label.css-1hv8oq8-MuiStepLabel-label {
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+
+}
