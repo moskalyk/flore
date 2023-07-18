@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import img0 from './imgs/0.png'
@@ -45,8 +45,8 @@ function Shop(props: any){
       <div className='container'>
         {props.imgs.map((img: any, i: any) => {
           if(i==9) return <img className='black-square' />
-          else return <div className="flower" onClick={() => {props.setSelectedNFT(img); props.setPrice(Math.floor(props.prices[i]*props.temperature))}}>
-            <img src={img} /><p className='price'>{Math.floor(props.prices[i]*props.temperature)} $TEN</p></div>
+          else return <div className="flower" onClick={() => {props.setSelectedNFTID(i);props.setSelectedNFT(img); props.setPrice(Math.floor(props.prices[i]*props.temperature))}}>
+            <img src={img} /><p className='price'>_ {Math.floor(props.prices[i]*props.temperature)}</p></div>
         })}
       </div>
         <br/>
@@ -82,17 +82,17 @@ function Postal(props: any) {
       <br/>
       <br/>
       <BoxSS justifyContent={'center'}>
-        <RadioGroup size='lg' gap='10' flexDirection="row" value="resident" onValueChange={(value: any) => {props.setName(value)}}name="network" options={[{'label': "resident", value: 'resident'},{'label': "occupant", value: 'occupant'},]}/>
+        <RadioGroup size='lg' gap='10' flexDirection="row" value={props.name} onValueChange={(value: any) => {props.setName(value)}}name="network" options={[{'label': "resident", value: 'resident'},{'label': "occupant", value: 'occupant'},]}/>
       </BoxSS>
       <br/>
       <br/>
-      <Input placeholder="street" onValueChange={(value: any) => {}}/>
+      <Input placeholder="street" onChange={(value: any) => {console.log(value);props.setStreet(value.target.value)}}/>
       <br/>
-      <Input placeholder="postal code" onValueChange={(value: any) => {}}/>
+      <Input placeholder="postal code" onChange={(value: any) => {props.setPostal(value.target.value)}}/>
       <br/>
-      <Input placeholder="province" onValueChange={(value: any) => {}}/>
+      <Input placeholder="province" onChange={(value: any) => {props.setProvince(value.target.value)}}/>
       <br/>
-      <Input placeholder="city" onValueChange={(value: any) => {}}/>
+      <Input placeholder="city" onChange={(value: any) => {props.setCity(value.target.value)}}/>
       <br/>
       <br/>
       <ButtonSS label="Submit" onClick={() => {
@@ -103,9 +103,16 @@ function Postal(props: any) {
 }
 
 function Checkout(props: any) {
+  const [destinationAddress, setDestinationAddress] = React.useState<any>(null)
+  const [gift, setGift] = useState<any>('normal')
+  const [error, setError] = useState<any>(false)
+
+  React.useEffect(() => {
+    setDestinationAddress(props.address)
+  })
   const submitTransaction = async () => {
-      const flower1155ContractAddress = '0xc42ae8452f5057212a7c313589df6c9b83660aa3'
-      const tenContractAddress = '0xA1767A6C3dE0c07712bAcD48423D5Aad74081237'
+      const flore1155ContractAddress = '0xcc33AD129FA66c4688436b77e4a4eEd2c90D86ee'
+      const tenContractAddress = '0xdd0d8fee45c2d1ad1d39efcb494c8a1db4fde5b7'
   
       const wallet = await sequence.getWallet()
   
@@ -116,17 +123,36 @@ function Checkout(props: any) {
       
       // TODO: do an allowance ., check
       const data20 = erc20Interface.encodeFunctionData(
-        'approve', [flower1155ContractAddress, "100000000000000000000"]
+        'approve', [flore1155ContractAddress, "100000000000000000000"]
       )
   
       // Craft your transaction
       const erc721Interface = new ethers.utils.Interface([
-        'function claim(address address_, uint price, uint type_, uint blockNumber, uint celcius, bytes memory weatherProof) public'
+        'function arrangeFlower(address _address, uint price, uint tokenID, uint blockNumber, uint celcius, bytes memory weatherProof) public'
       ])
       
       // TODO: do a price request
+      // const res = await fetch('http://localhost:8000/price')
+
+      const res = await fetch("http://localhost:8000/price", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ 
+        address: props.address,
+        id: props.selectedNFTID
+      })
+    })
+
+      const json = await res.json()
+      console.log(json)
+      // json.price = 0
+      // json.sig ="0x"
+      console.log([destinationAddress, json.price, props.selectedNFTID, json.block, json.celcius, json.sig])
+
       const data = erc721Interface.encodeFunctionData(
-        'claim', [destinationAddress, price, props.selectedNFTID, blockNumber, celcius, proofSignature]
+        'arrangeFlower', [destinationAddress, json.price, props.selectedNFTID, json.block, json.celcius, json.sig]
       )
   
       const txn1 = {
@@ -135,23 +161,74 @@ function Checkout(props: any) {
       }
   
       const txn2 = {
-        to: flower1155ContractAddress,
+        to: flore1155ContractAddress,
         data: data
       }
   
       const signer = wallet.getSigner()
   
-      const res = await signer.sendTransactionBatch([txn1, txn2])
-      console.log(res)
+      // TODO: 
+      // const txRes = await signer.sendTransactionBatch([txn1, txn2])
+      // console.log(txRes)
+
+      let hash;
+    
+      // TODO: make request to backend with postal payload and hash
+      const postal = {
+        wallet: destinationAddress,
+        tokenId: props.selectedNFTID,
+        name: props.name,
+        street: props.street,
+        city: props.city,
+        provice: props.province,
+        postal: props.postal,
+        hash: hash
+      }
+
+      console.log(postal)
+
+      // fetch()
+      const res1 = await fetch("http://localhost:8000/order", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ 
+        address: props.address,
+        id: props.selectedNFTID,
+        price: json.price,
+        tokenID: props.selectedNFTID,
+        name: props.name,
+        street: props.street,
+        city: props.city,
+        provice: props.province,
+        postal: props.postal,
+      })
+    })
+
+    console.log(res1)
+
+    if(res1.status == 404){
+      setError(true)
+    } else {
       props.handleNext()
+    }
   }
 
   return(
     <>
-      <p style={{fontFamily:'Orbitron'}}>you will be asked to sign multiple transactions, <br/><br/>to approve and submit redemption</p>
+      <p style={{fontFamily:'Orbitron'}}>you will be asked to sign multiple transactions, <br/><br/>to approve and submit collection</p>
       <br/>
+      <BoxSS justifyContent={'center'}>
+        <RadioGroup size='lg' gap='10' flexDirection="row" value={gift} onValueChange={(value: any) => {setGift(value)}}name="network" options={[{'label': "normal", value: 'normal'},{'label': "gift", value: 'gift'},]}/>
+      </BoxSS>
+      <br/>
+      { gift != 'normal' ? <Input placeholder="gift address" label="testing" onValueChange={(value: any) => {setDestinationAddress(value.target.value)}}/> : null }
       <br/>
       <ButtonSS label="Submit Transaction" onClick={() => submitTransaction() }/>
+      <br/>
+      <br/>
+      {error ? <p style={{fontFamily:'Orbitron', color: 'red'}}>something went wrong in the transaction <br/><br/></p> : null }
     </>
   )
 }
@@ -160,11 +237,16 @@ function HorizontalLinearStepper(props: any) {
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set<number>());
   const [panel, setPanel] = React.useState(null)
+  const [name, setName] = useState<any>('resident')
 
   const [street, setStreet] = React.useState(null)
   const [city, setCity] = React.useState(null)
   const [postal, setPostal] = React.useState(null)
   const [province, setProvince] = React.useState(null)
+
+  React.useEffect(() => {
+
+  }, [street, city, postal, province])
 
   const Compass = (activeStep: any, connectors: any, connect: any, address: any, handleNext: any) => {
     let navigator;
@@ -173,10 +255,10 @@ function HorizontalLinearStepper(props: any) {
         //   navigator = <Approve genesisAccountAddress={props.address} connectors={connectors} connect={connect} handleNext={handleNext}/>
         //   break;
         case 0:
-          navigator = <Postal network={'polygon'} handleNext={handleNext}/>
+          navigator = <Postal name={name} setName={setName} setStreet={setStreet} setCity={setCity} setPostal={setPostal} setProvince={setProvince} handleNext={handleNext}/>
           break;
         default:
-          navigator = <Checkout genesisAccountAddress={props.address} network={'mumbai'} handleNext={handleNext}/>
+          navigator = <Checkout selectedNFTID={props.selectedNFTID} name={name} street={street} city={city} postal={postal} province={province} address={props.address} handleNext={handleNext}/>
       }
     return(
       <>
@@ -302,15 +384,17 @@ function CheckoutStepper(props: any){
   return(
     <>
       <br/>
-      <p className='degrees'>{props.temperature}°C → {props.price} $TEN</p>
+      <p className='degrees'>{props.temperature}°C → _{props.price}</p>
+      <p className='warning' style={{color: 'blue'}}>⚠ warning: final price may fluctuate</p>
       <br/>
       <br/>
       <img src={props.selectedNFT} className='checkout-big-nft'/>
       <br/>
+      
       <br/>
       <br/>
       <div style={{margin: 'auto'}}>
-        <HorizontalLinearStepper/>
+        <HorizontalLinearStepper selectedNFTID={props.selectedNFTID} address={props.address}/>
       </div>
     </>
   )
@@ -320,7 +404,9 @@ function App() {
   const [imgs, setImags] = React.useState([img0, img1, img2, img3, img4, img5, img6, img7, img8, img8, img9 ] )
   const [temperature, setTemperature] = React.useState(0)
   const [prices, setPrices] = React.useState([11, 22, 33, 44, 55, 66, 77, 88, 99, 222, 111])
-  const [selectedNFT, setSelectedNFT] = React.useState('')
+  const [selectedNFT, setSelectedNFT] = React.useState<any>('')
+  const [selectedNFTID, setSelectedNFTID] = React.useState<any>('')
+
   const [loggedIn, setLoggedIn] = React.useState(false)
   const [email, setEmail]= React.useState<any>(null)
   const [address, setAddress] =React.useState<any>(null)
@@ -342,23 +428,23 @@ function App() {
   }, [])
 
   const connect = async () => {
-    // const wallet = sequence.getWallet()
-    // const connectDetails = await wallet.connect({
-    //   networkId: 80001,
-    //   app: 'flore',
-    //   authorize: true,
-    //   askForEmail: true,
-    //   settings: {
-    //     theme: 'dark'
-    //   }
-    // })
+    const wallet = sequence.getWallet()
+    const connectDetails = await wallet.connect({
+      networkId: 5,
+      app: 'flore',
+      authorize: true,
+      askForEmail: true,
+      settings: {
+        theme: 'dark'
+      }
+    })
 
-    // if(connectDetails.connected) {
-    //   console.log(connectDetails)
-    //   setLoggedIn(true)
-    //   setEmail(connectDetails.session!.accountAddress!)
-    //   setAddress(connectDetails.session!.accountAddress!)
-    // }
+    if(connectDetails.connected) {
+      console.log(connectDetails)
+      setLoggedIn(true)
+      setEmail(connectDetails.session!.accountAddress!)
+      setAddress(connectDetails.session!.accountAddress!)
+    }
     setLoggedIn(true)
 
   }
@@ -375,16 +461,20 @@ function App() {
             temperature={temperature}
             prices={prices}
             setSelectedNFT={setSelectedNFT}
+            setSelectedNFTID={setSelectedNFTID}
             setPrice={setPrice}
             imgs={imgs}
             selectedNFT={selectedNFT}
+            selectedNFTID={selectedNFTID}
             signature={signature}
           />
         : 
           <CheckoutStepper
             temperature={temperature}
             selectedNFT={selectedNFT}
+            selectedNFTID={selectedNFTID}
             price={price}
+            address={address}
           />
       }
     </div>

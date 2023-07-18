@@ -131,3 +131,9 @@ img:hover {
   font-family: 'Orbitron', sans-serif;
 
 }
+
+.warning {
+  font-size: 20px;
+  font-family: 'Orbitron', sans-serif;
+  padding: 20px;
+}
